@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on A Hugo website</title>
+    <link>/post/</link>
+    <description>Recent content in Posts on A Hugo website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 20 Sep 2020 00:00:00 +0000</lastBuildDate><atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>COVID-19 on Diferent Aspects from Toronto Cases</title>
+      <link>/2020/09/20/covid-19-on-diferent-aspects-from-toronto-cases/</link>
+      <pubDate>Sun, 20 Sep 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/2020/09/20/covid-19-on-diferent-aspects-from-toronto-cases/</guid>
+      <description>resou &amp;lt;- list_package_resources(&amp;quot;https://open.toronto.ca/dataset/covid-19-cases-in-toronto/&amp;quot;)covdat &amp;lt;- get_resource(resou)str(covdat)## tibble [16,942 x 18] (S3: tbl_df/tbl/data.frame)## $ _id : int [1:16942] 126705 126706 126707 126708 126709 126710 126711 126712 126713 126714 ...## $ Assigned_ID : int [1:16942] 1 2 3 4 5 6 7 8 9 10 ...## $ Outbreak Associated : chr [1:16942] &amp;quot;Sporadic&amp;quot; &amp;quot;Sporadic&amp;quot; &amp;quot;Sporadic&amp;quot; &amp;quot;Sporadic&amp;quot; ...## $ Age Group : chr [1:16942] &amp;quot;50 to 59 Years&amp;quot; &amp;quot;50 to 59 Years&amp;quot; &amp;quot;20 to 29 Years&amp;quot; &amp;quot;60 to 69 Years&amp;quot; .</description>
+    </item>
+    
+  </channel>
+</rss>

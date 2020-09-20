@@ -1,0 +1,159 @@
+---
+title: "COVID-19 on Diferent Aspects from Toronto Cases"
+author: "Zhendong Zhang"
+date: 2020-09-20
+abstract: "In this paper I will explore the data of COVID-19 cases from Toronto, and analyzing it in different aspects such as gender groups, age groups, fatal and resolved cases."
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+#install.packages("opendatatoronto")
+library(opendatatoronto)
+library(tidyverse)
+
+```
+
+
+```{r download}
+
+resou <- list_package_resources("https://open.toronto.ca/dataset/covid-19-cases-in-toronto/")
+covdat <- get_resource(resou)
+str(covdat)
+variable.names(covdat)
+
+```
+
+The dataset(covdat) is total reported cases of COVID-19 in Toronto
+
+Episode Date is an estimate of symptom onset date in a case. It is calculated hierarchically based
+on either the date of symptom onset, specimen collection/test date, or the date reported to
+public health.
+
+Reported Date is the date the case was reported to public health.
+
+# Introduction
+
+The major event in the year 2020 is surely the outbreak of COVID-19. It has significantly changed our life. In this paper, I will explore the influence of COVID-19 on different groups of people in Toronto. And also the effectiveness of the response of Government. This paper is mainly based on the confirmed cases` data from Toronto.
+
+I mainly compared the data from each group of people such as male, female, resolved cases and fatal cases. Then I tried to find out the characteristics in each group and found out the possible reasons behind these data. The major found is that most fatal cases in the Toronto area are elder people, and this disease has indiscriminate influences across different genders.
+
+First, I traced the curve of the outbreak from Jan 2020 until now and the distribution of cases on each age group in Toronto. Then I analyzed the sources of infections on these cases, and I trace the closed contacted cases curve to see if the policy is effective. In the end, I mainly focus on the fatal and resolved cases and tried to analyze the characteristics behind these two groups. In the future I will keep monitoring the cases in Toronto, seeing if there is another event worth analyzing. This paper`s weakness is that I omit lots of cases that the data related are not available so we cannot trace them, but there might be a major influence in these cases, which could significantly influence our conclusion. Also, the data sample is too small since we only have Toronto data.
+
+
+
+```{r infect-plots}
+
+covdat <- filter(covdat, Classification == "CONFIRMED")
+#Mainly focus on the confirmed cases
+
+covdat <- mutate(covdat, month = strftime(as.Date(`Reported Date`),"%m"))
+ggplot(covdat, aes(x = month)) + geom_histogram(stat="count") + labs(x = "Months", y = "Number of Confirmed Cases", title = "Cases Distribution Across Months")
+
+ggplot(covdat, aes(x = `Age Group`)) + geom_bar(stat="count") + labs(x = "Age Groups", y = "Number of Confirmed Cases", title = "Cases Distribution Across Age Groups") + theme(axis.text.x = element_text(angle = 45, hjust = 0.5, vjust = 0.5))
+
+ggplot(covdat, aes(x = `Source of Infection`)) + geom_bar(stat="count") + labs(title = "Infection Sources Distribution") + theme(axis.text.x = element_text(angle = 45, hjust = 0.5, vjust = 0.5))
+#The highest source is NA.
+
+sources <- filter(covdat, `Source of Infection` != "N/A - Outbreak associated")
+
+ggplot(sources, aes(x = `Source of Infection`)) + geom_bar(stat="count") + labs(title = "Filtered Infection Sources Distribution")
+
+```
+
+The peak is in April, and started to decrease in May. There was a boost from March to April. But now it has been back to the level in March. The infection between age groups is evenly distributed.
+
+There are many cases that they are NA-Outbreak Associated, which means that we don`t know the source of infection on these cases.
+
+The highest source of infection is close contact, which is significant higher than others.
+And the second highest is the community.
+This means social distancing is expected to be a right strategy on this outbreak.
+
+```{r covdat-contact}
+
+contact <- filter(sources, `Source of Infection` == "Close contact")
+#This is only the cases infected by close contact
+
+contact_case <- summarise(group_by(contact, month), Class = "Closed Contact", count=n(), .groups = 'drop')
+total_case <- summarise(group_by(covdat, month), Class = "Total", count=n(), .groups = 'drop')
+cases <- rbind(contact_case, total_case)
+ggplot(cases, aes(x=month, y=count, fill = Class)) + geom_bar(stat="identity", position="dodge") + labs(x = "Months", y = "Number of Cases", title = "Total Cases vs. Confirmed Closed Contact Cases")
+
+```
+
+This means social distancing is surely a right strategy on this outbreak.
+
+Since April 1st, there was an emergency response from Ontario Government. But the close contact confirmed cases increases to the peak in May. Then this policy starts to take effect in June, and making significant effect in the following three months until now.
+
+
+```{r fata}
+
+#For the fatal cases
+fata <- filter(covdat, covdat$Outcome == "FATAL")
+ggplot(fata, aes(x = `Age Group`)) + geom_bar(stat="count") + labs(x = "Age Groups", y = "Number of Cases", title = "Age Group Distribution in Fatal Cases") + theme(axis.text.x = element_text(angle = 45, hjust = 0.5, vjust = 0.5))
+
+ggplot(fata, aes(x = `Client Gender`)) + geom_bar(stat="count") + labs(x = "Genders", y = "Number of Cases", title = "Gender Group Distribution in Fatal Cases")
+
+summ1 <- summarise(fata, Total = count(fata),
+          Ever_Hospitalized = count(filter(fata, `Ever Hospitalized` == "Yes")), 
+          Ever_in_ICU = count(filter(fata, `Ever in ICU` == "Yes")),
+          Ever_Intubated = count(filter(fata, `Ever Intubated` == "Yes")))
+
+barplot(unlist(summ1), names.arg=c("Total", "Ever Hospitalized", "Ever in ICU", "Ever Intubated"), main = "Fatal Cases` History of Inpatient Visits")
+
+percent <- (summ1$Ever_Hospitalized + summ1$Ever_in_ICU + summ1$Ever_Intubated) * 100/summ1$Total
+percent
+
+```
+
+Most of cases are elder people. This is reasonable because they generally have weaker health conditions. As the age increases, the fatal cases also increase.
+
+Gender seems have no influence on the fatal outcomes
+
+Nearly half of fatal cases have ever hospitalized. And about 71% of total fatal cases got treated, which is not a good ratio.
+
+```{r covdat-resol}
+
+#For the resolved cases
+resol <- filter(covdat, Outcome == "RESOLVED")
+ggplot(resol, aes(x = `Age Group`)) + geom_bar(stat="count") + labs(x = "Age Groups", y = "Number of Cases", title = "Age Group Distribution in Resolved Cases") + theme(axis.text.x = element_text(angle = 45, hjust = 0.5, vjust = 0.5))
+
+summ <- summarise(resol, Total = count(resol),
+          Ever_Hospitalized = count(filter(resol, `Ever Hospitalized` == "Yes")), 
+          Ever_in_ICU = count(filter(resol, `Ever in ICU` == "Yes")),
+          Ever_Intubated = count(filter(resol, `Ever Intubated` == "Yes")))
+
+barplot(unlist(summ), names.arg=c("Total", "Ever Hospitalized", "Ever in ICU", "Ever Intubated"), main = "Resolved Cases` History of Inpatient Visits")
+
+```
+
+Younger people seems more likely to recover from this.
+
+We can see that in most resolved cases, people can recover without even being hospitalized.
+So immune system is making a great effect in this outbreak.
+
+# Discussion
+
+COVID-19 is making no difference on different gender groups, but age groups. Elder people cases are more likely to be fatal based on Toronto data. And recovery of this disease is heavily based on immune system. Also, every age group could have equally chance to get infected.
+
+Despite the unknown source of infection cases, the major source is close contact. The government published a law in April to enforce social distancing. This law is making its effect in June, and it is indeed effective. The level of confirmed cases in Toronto has back to a relatively low level.
+
+
+# Weakness
+
+In this paper, I omit the NA sources of infection, but it has the highest amount of infections, so this might be critical. Also, the data-set is too small to trace the real characteristics of COVID-19, since it only has data from Toronto. In the future, I will use a larger and well-specified data to further my study.
+
+The data in this spreadsheet are subject to change as public health investigations into reported cases and continuous quality improvement initiatives are ongoing, and additional cases continue to be reported. The data will be completely refreshed and overwritten on a weekly basis.
+
+# References
+
+- https://www.toronto.ca/home/covid-19/covid-19-protect-yourself-others/covid-19-reduce-virus-spread/
+- https://open.toronto.ca/dataset/covid-19-cases-in-toronto/
+- Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686,
+  https://doi.org/10.21105/joss.01686
+- Sharla Gelfand (2020). opendatatoronto: Access the City of Toronto Open Data Portal.
+  https://sharlagelfand.github.io/opendatatoronto/,
+  https://github.com/sharlagelfand/opendatatoronto/.
+
+

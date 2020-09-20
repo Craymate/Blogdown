@@ -1,0 +1,138 @@
+---
+title: "COVID-19 on Diferent Aspects from Toronto Cases"
+author: "Zhendong Zhang"
+date: 2020-09-20
+abstract: "In this paper I will explore the data of COVID-19 cases from Toronto, and analyzing it in different aspects such as gender groups, age groups, fatal and resolved cases."
+output: html_document
+---
+
+
+
+<pre class="r"><code>resou &lt;- list_package_resources(&quot;https://open.toronto.ca/dataset/covid-19-cases-in-toronto/&quot;)
+covdat &lt;- get_resource(resou)
+str(covdat)</code></pre>
+<pre><code>## tibble [16,942 x 18] (S3: tbl_df/tbl/data.frame)
+##  $ _id                   : int [1:16942] 126705 126706 126707 126708 126709 126710 126711 126712 126713 126714 ...
+##  $ Assigned_ID           : int [1:16942] 1 2 3 4 5 6 7 8 9 10 ...
+##  $ Outbreak Associated   : chr [1:16942] &quot;Sporadic&quot; &quot;Sporadic&quot; &quot;Sporadic&quot; &quot;Sporadic&quot; ...
+##  $ Age Group             : chr [1:16942] &quot;50 to 59 Years&quot; &quot;50 to 59 Years&quot; &quot;20 to 29 Years&quot; &quot;60 to 69 Years&quot; ...
+##  $ Neighbourhood Name    : chr [1:16942] &quot;Willowdale East&quot; &quot;Willowdale East&quot; &quot;Parkwoods-Donalda&quot; &quot;Church-Yonge Corridor&quot; ...
+##  $ FSA                   : chr [1:16942] &quot;M2N&quot; &quot;M2N&quot; &quot;M3A&quot; &quot;M4W&quot; ...
+##  $ Source of Infection   : chr [1:16942] &quot;Travel&quot; &quot;Travel&quot; &quot;Travel&quot; &quot;Travel&quot; ...
+##  $ Classification        : chr [1:16942] &quot;CONFIRMED&quot; &quot;CONFIRMED&quot; &quot;CONFIRMED&quot; &quot;CONFIRMED&quot; ...
+##  $ Episode Date          : chr [1:16942] &quot;2020-01-22&quot; &quot;2020-01-21&quot; &quot;2020-02-05&quot; &quot;2020-02-16&quot; ...
+##  $ Reported Date         : chr [1:16942] &quot;2020-01-23&quot; &quot;2020-01-23&quot; &quot;2020-02-21&quot; &quot;2020-02-25&quot; ...
+##  $ Client Gender         : chr [1:16942] &quot;FEMALE&quot; &quot;MALE&quot; &quot;FEMALE&quot; &quot;FEMALE&quot; ...
+##  $ Outcome               : chr [1:16942] &quot;RESOLVED&quot; &quot;RESOLVED&quot; &quot;RESOLVED&quot; &quot;RESOLVED&quot; ...
+##  $ Currently Hospitalized: chr [1:16942] &quot;No&quot; &quot;No&quot; &quot;No&quot; &quot;No&quot; ...
+##  $ Currently in ICU      : chr [1:16942] &quot;No&quot; &quot;No&quot; &quot;No&quot; &quot;No&quot; ...
+##  $ Currently Intubated   : chr [1:16942] &quot;No&quot; &quot;No&quot; &quot;No&quot; &quot;No&quot; ...
+##  $ Ever Hospitalized     : chr [1:16942] &quot;No&quot; &quot;Yes&quot; &quot;No&quot; &quot;No&quot; ...
+##  $ Ever in ICU           : chr [1:16942] &quot;No&quot; &quot;No&quot; &quot;No&quot; &quot;No&quot; ...
+##  $ Ever Intubated        : chr [1:16942] &quot;No&quot; &quot;No&quot; &quot;No&quot; &quot;No&quot; ...</code></pre>
+<pre class="r"><code>variable.names(covdat)</code></pre>
+<pre><code>##  [1] &quot;_id&quot;                    &quot;Assigned_ID&quot;            &quot;Outbreak Associated&quot;   
+##  [4] &quot;Age Group&quot;              &quot;Neighbourhood Name&quot;     &quot;FSA&quot;                   
+##  [7] &quot;Source of Infection&quot;    &quot;Classification&quot;         &quot;Episode Date&quot;          
+## [10] &quot;Reported Date&quot;          &quot;Client Gender&quot;          &quot;Outcome&quot;               
+## [13] &quot;Currently Hospitalized&quot; &quot;Currently in ICU&quot;       &quot;Currently Intubated&quot;   
+## [16] &quot;Ever Hospitalized&quot;      &quot;Ever in ICU&quot;            &quot;Ever Intubated&quot;</code></pre>
+<p>The dataset(covdat) is total reported cases of COVID-19 in Toronto</p>
+<p>Episode Date is an estimate of symptom onset date in a case. It is calculated hierarchically based
+on either the date of symptom onset, specimen collection/test date, or the date reported to
+public health.</p>
+<p>Reported Date is the date the case was reported to public health.</p>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>The major event in the year 2020 is surely the outbreak of COVID-19. It has significantly changed our life. In this paper, I will explore the influence of COVID-19 on different groups of people in Toronto. And also the effectiveness of the response of Government. This paper is mainly based on the confirmed cases` data from Toronto.</p>
+<p>I mainly compared the data from each group of people such as male, female, resolved cases and fatal cases. Then I tried to find out the characteristics in each group and found out the possible reasons behind these data. The major found is that most fatal cases in the Toronto area are elder people, and this disease has indiscriminate influences across different genders.</p>
+<p>First, I traced the curve of the outbreak from Jan 2020 until now and the distribution of cases on each age group in Toronto. Then I analyzed the sources of infections on these cases, and I trace the closed contacted cases curve to see if the policy is effective. In the end, I mainly focus on the fatal and resolved cases and tried to analyze the characteristics behind these two groups. In the future I will keep monitoring the cases in Toronto, seeing if there is another event worth analyzing. This paper`s weakness is that I omit lots of cases that the data related are not available so we cannot trace them, but there might be a major influence in these cases, which could significantly influence our conclusion. Also, the data sample is too small since we only have Toronto data.</p>
+<pre class="r"><code>covdat &lt;- filter(covdat, Classification == &quot;CONFIRMED&quot;)
+#Mainly focus on the confirmed cases
+
+covdat &lt;- mutate(covdat, month = strftime(as.Date(`Reported Date`),&quot;%m&quot;))
+ggplot(covdat, aes(x = month)) + geom_histogram(stat=&quot;count&quot;) + labs(x = &quot;Months&quot;, y = &quot;Number of Confirmed Cases&quot;, title = &quot;Cases Distribution Across Months&quot;)</code></pre>
+<pre><code>## Warning: Ignoring unknown parameters: binwidth, bins, pad</code></pre>
+<p><img src="/post/2020-09-20-research-of-covid-19-on-diferent-aspects-from-toronto-cases_files/figure-html/infect-plots-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(covdat, aes(x = `Age Group`)) + geom_bar(stat=&quot;count&quot;) + labs(x = &quot;Age Groups&quot;, y = &quot;Number of Confirmed Cases&quot;, title = &quot;Cases Distribution Across Age Groups&quot;) + theme(axis.text.x = element_text(angle = 45, hjust = 0.5, vjust = 0.5))</code></pre>
+<p><img src="/post/2020-09-20-research-of-covid-19-on-diferent-aspects-from-toronto-cases_files/figure-html/infect-plots-2.png" width="672" /></p>
+<pre class="r"><code>ggplot(covdat, aes(x = `Source of Infection`)) + geom_bar(stat=&quot;count&quot;) + labs(title = &quot;Infection Sources Distribution&quot;) + theme(axis.text.x = element_text(angle = 45, hjust = 0.5, vjust = 0.5))</code></pre>
+<p><img src="/post/2020-09-20-research-of-covid-19-on-diferent-aspects-from-toronto-cases_files/figure-html/infect-plots-3.png" width="672" /></p>
+<pre class="r"><code>#The highest source is NA.
+
+sources &lt;- filter(covdat, `Source of Infection` != &quot;N/A - Outbreak associated&quot;)
+
+ggplot(sources, aes(x = `Source of Infection`)) + geom_bar(stat=&quot;count&quot;) + labs(title = &quot;Filtered Infection Sources Distribution&quot;)</code></pre>
+<p><img src="/post/2020-09-20-research-of-covid-19-on-diferent-aspects-from-toronto-cases_files/figure-html/infect-plots-4.png" width="672" /></p>
+<p>The peak is in April, and started to decrease in May. There was a boost from March to April. But now it has been back to the level in March. The infection between age groups is evenly distributed.</p>
+<p>There are many cases that they are NA-Outbreak Associated, which means that we don`t know the source of infection on these cases.</p>
+<p>The highest source of infection is close contact, which is significant higher than others.
+And the second highest is the community.
+This means social distancing is expected to be a right strategy on this outbreak.</p>
+<pre class="r"><code>contact &lt;- filter(sources, `Source of Infection` == &quot;Close contact&quot;)
+#This is only the cases infected by close contact
+
+contact_case &lt;- summarise(group_by(contact, month), Class = &quot;Closed Contact&quot;, count=n(), .groups = &#39;drop&#39;)
+total_case &lt;- summarise(group_by(covdat, month), Class = &quot;Total&quot;, count=n(), .groups = &#39;drop&#39;)
+cases &lt;- rbind(contact_case, total_case)
+ggplot(cases, aes(x=month, y=count, fill = Class)) + geom_bar(stat=&quot;identity&quot;, position=&quot;dodge&quot;) + labs(x = &quot;Months&quot;, y = &quot;Number of Cases&quot;, title = &quot;Total Cases vs. Confirmed Closed Contact Cases&quot;)</code></pre>
+<p><img src="/post/2020-09-20-research-of-covid-19-on-diferent-aspects-from-toronto-cases_files/figure-html/covdat-contact-1.png" width="672" /></p>
+<p>This means social distancing is surely a right strategy on this outbreak.</p>
+<p>Since April 1st, there was an emergency response from Ontario Government. But the close contact confirmed cases increases to the peak in May. Then this policy starts to take effect in June, and making significant effect in the following three months until now.</p>
+<pre class="r"><code>#For the fatal cases
+fata &lt;- filter(covdat, covdat$Outcome == &quot;FATAL&quot;)
+ggplot(fata, aes(x = `Age Group`)) + geom_bar(stat=&quot;count&quot;) + labs(x = &quot;Age Groups&quot;, y = &quot;Number of Cases&quot;, title = &quot;Age Group Distribution in Fatal Cases&quot;) + theme(axis.text.x = element_text(angle = 45, hjust = 0.5, vjust = 0.5))</code></pre>
+<p><img src="/post/2020-09-20-research-of-covid-19-on-diferent-aspects-from-toronto-cases_files/figure-html/fata-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(fata, aes(x = `Client Gender`)) + geom_bar(stat=&quot;count&quot;) + labs(x = &quot;Genders&quot;, y = &quot;Number of Cases&quot;, title = &quot;Gender Group Distribution in Fatal Cases&quot;)</code></pre>
+<p><img src="/post/2020-09-20-research-of-covid-19-on-diferent-aspects-from-toronto-cases_files/figure-html/fata-2.png" width="672" /></p>
+<pre class="r"><code>summ1 &lt;- summarise(fata, Total = count(fata),
+          Ever_Hospitalized = count(filter(fata, `Ever Hospitalized` == &quot;Yes&quot;)), 
+          Ever_in_ICU = count(filter(fata, `Ever in ICU` == &quot;Yes&quot;)),
+          Ever_Intubated = count(filter(fata, `Ever Intubated` == &quot;Yes&quot;)))
+
+barplot(unlist(summ1), names.arg=c(&quot;Total&quot;, &quot;Ever Hospitalized&quot;, &quot;Ever in ICU&quot;, &quot;Ever Intubated&quot;), main = &quot;Fatal Cases` History of Inpatient Visits&quot;)</code></pre>
+<p><img src="/post/2020-09-20-research-of-covid-19-on-diferent-aspects-from-toronto-cases_files/figure-html/fata-3.png" width="672" /></p>
+<pre class="r"><code>percent &lt;- (summ1$Ever_Hospitalized + summ1$Ever_in_ICU + summ1$Ever_Intubated) * 100/summ1$Total
+percent</code></pre>
+<pre><code>##          n
+## 1 71.14385</code></pre>
+<p>Most of cases are elder people. This is reasonable because they generally have weaker health conditions. As the age increases, the fatal cases also increase.</p>
+<p>Gender seems have no influence on the fatal outcomes</p>
+<p>Nearly half of fatal cases have ever hospitalized. And about 71% of total fatal cases got treated, which is not a good ratio.</p>
+<pre class="r"><code>#For the resolved cases
+resol &lt;- filter(covdat, Outcome == &quot;RESOLVED&quot;)
+ggplot(resol, aes(x = `Age Group`)) + geom_bar(stat=&quot;count&quot;) + labs(x = &quot;Age Groups&quot;, y = &quot;Number of Cases&quot;, title = &quot;Age Group Distribution in Resolved Cases&quot;) + theme(axis.text.x = element_text(angle = 45, hjust = 0.5, vjust = 0.5))</code></pre>
+<p><img src="/post/2020-09-20-research-of-covid-19-on-diferent-aspects-from-toronto-cases_files/figure-html/covdat-resol-1.png" width="672" /></p>
+<pre class="r"><code>summ &lt;- summarise(resol, Total = count(resol),
+          Ever_Hospitalized = count(filter(resol, `Ever Hospitalized` == &quot;Yes&quot;)), 
+          Ever_in_ICU = count(filter(resol, `Ever in ICU` == &quot;Yes&quot;)),
+          Ever_Intubated = count(filter(resol, `Ever Intubated` == &quot;Yes&quot;)))
+
+barplot(unlist(summ), names.arg=c(&quot;Total&quot;, &quot;Ever Hospitalized&quot;, &quot;Ever in ICU&quot;, &quot;Ever Intubated&quot;), main = &quot;Resolved Cases` History of Inpatient Visits&quot;)</code></pre>
+<p><img src="/post/2020-09-20-research-of-covid-19-on-diferent-aspects-from-toronto-cases_files/figure-html/covdat-resol-2.png" width="672" /></p>
+<p>Younger people seems more likely to recover from this.</p>
+<p>We can see that in most resolved cases, people can recover without even being hospitalized.
+So immune system is making a great effect in this outbreak.</p>
+</div>
+<div id="discussion" class="section level1">
+<h1>Discussion</h1>
+<p>COVID-19 is making no difference on different gender groups, but age groups. Elder people cases are more likely to be fatal based on Toronto data. And recovery of this disease is heavily based on immune system. Also, every age group could have equally chance to get infected.</p>
+<p>Despite the unknown source of infection cases, the major source is close contact. The government published a law in April to enforce social distancing. This law is making its effect in June, and it is indeed effective. The level of confirmed cases in Toronto has back to a relatively low level.</p>
+</div>
+<div id="weakness" class="section level1">
+<h1>Weakness</h1>
+<p>In this paper, I omit the NA sources of infection, but it has the highest amount of infections, so this might be critical. Also, the data-set is too small to trace the real characteristics of COVID-19, since it only has data from Toronto. In the future, I will use a larger and well-specified data to further my study.</p>
+<p>The data in this spreadsheet are subject to change as public health investigations into reported cases and continuous quality improvement initiatives are ongoing, and additional cases continue to be reported. The data will be completely refreshed and overwritten on a weekly basis.</p>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<ul>
+<li><a href="https://www.toronto.ca/home/covid-19/covid-19-protect-yourself-others/covid-19-reduce-virus-spread/" class="uri">https://www.toronto.ca/home/covid-19/covid-19-protect-yourself-others/covid-19-reduce-virus-spread/</a></li>
+<li><a href="https://open.toronto.ca/dataset/covid-19-cases-in-toronto/" class="uri">https://open.toronto.ca/dataset/covid-19-cases-in-toronto/</a></li>
+<li>Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686,
+<a href="https://doi.org/10.21105/joss.01686" class="uri">https://doi.org/10.21105/joss.01686</a></li>
+<li>Sharla Gelfand (2020). opendatatoronto: Access the City of Toronto Open Data Portal.
+<a href="https://sharlagelfand.github.io/opendatatoronto/" class="uri">https://sharlagelfand.github.io/opendatatoronto/</a>,
+<a href="https://github.com/sharlagelfand/opendatatoronto/" class="uri">https://github.com/sharlagelfand/opendatatoronto/</a>.</li>
+</ul>
+</div>
